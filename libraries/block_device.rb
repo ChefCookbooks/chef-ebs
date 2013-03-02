@@ -163,6 +163,24 @@ module BlockDevice
     end
   end
 
+  def self.available_device_id(range_regex)
+    current_devices = range_regex ? Dir.glob("#{range_regex}*") : Dir.glob('/dev/xvd*')
+    if current_devices.empty?
+      range = "#{range_regex}"
+      range.slice!('/dev/xvd')
+      range.slice!('[')
+      range.slice!(']')
+      devid = range[0,1]
+    else
+      last_device = current_devices.sort.last
+      last_device.slice!('/dev/xvd')
+      devid = last_device[0,1].succ
+      if devid == 'b'
+        devid.succ
+      end
+    end    
+  end
+  
   def self.on_kvm?
     `cat /proc/cpuinfo`.match(/QEMU/)
   end

@@ -11,7 +11,7 @@ credentials = Chef::EncryptedDataBagItem.load(node[:ebs][:creds][:databag], node
 node[:ebs][:raids].each do |device, options|
   disks = []
   if !options[:disks] && options[:num_disks]
-    next_mount = Dir.glob('/dev/xvd?').sort.last[-1,1].succ
+    next_mount = BlockDevice.available_device_id(node[:ebs][:block_range_regex])
     1.upto(options[:num_disks].to_i) do |i|
       disks << mount = "/dev/sd#{next_mount}"
       next_mount = next_mount.succ
