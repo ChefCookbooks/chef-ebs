@@ -49,6 +49,11 @@ node[:ebs][:raids].each do |raid_device, options|
           BlockDevice.assemble_raid(raid_device, options)
         end
       else
+        # When ephemeral disks, minimally one comes mounted by default on AWS.
+        # Assure no disk intended for the raid remains mounted before creating.
+        options[:disks].each do |disk_device|
+          BlockDevice.assure_nomount(disk_device)
+        end
         BlockDevice.create_raid(raid_device, options.update(:chunk_size => node[:ebs][:mdadm_chunk_size]))
       end
 

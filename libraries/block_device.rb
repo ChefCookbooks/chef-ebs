@@ -55,9 +55,16 @@ module BlockDevice
     exec_command("mdadm --assemble --verbose #{raid_device} #{options[:disks].join(' ')}") or raise "Failed to assemble the RAID array at #{raid_device}"
   end
 
+  def self.assure_nomount(disk_device)
+    Chef::Log.info "Unmounting DISK device #{disk_device}"
+    exec_command("umount #{disk_device}", true)
+
+    # TODO: fixup /etc/fstab so the device does not try to mount at boot
+  end
+
   def self.create_raid(raid_device, options)
     Chef::Log.info "creating RAID array #{raid_device} with #{options[:disks].size} disks, RAID level #{options[:raid_level]} at #{options[:mount_point]}"
-    exec_command("yes n | mdadm --create --chunk=#{options[:chunk_size]} --metadata=1.2 --verbose #{raid_device} --level=#{options[:raid_level]} --raid-devices=#{options[:disks].size} #{options[:disks].join(' ')}") or raise "Failed to create the RAID array at #{raid_device}"
+    exec_command("yes | mdadm --create --chunk=#{options[:chunk_size]} --metadata=1.2 --verbose #{raid_device} --level=#{options[:raid_level]} --raid-devices=#{options[:disks].size} #{options[:disks].join(' ')}") or raise "Failed to create the RAID array at #{raid_device}"
   end
 
   def self.set_read_ahead(raid_device, ahead_option)
@@ -140,10 +147,10 @@ module BlockDevice
     end
   end
 
-  def self.exec_command(command)
+  def self.exec_command(command, ignore_errors = false)
     Chef::Log.debug("Executing: #{command}")
     output = `#{command} 2>&1`
-    if $?.success?
+    if $?.success? || ignore_errors
       Chef::Log.info output
       true
     else
