@@ -4,6 +4,7 @@ default[:ebs][:volumes] = {}
 default[:ebs][:raids] = {}
 default[:ebs][:mdadm_chunk_size] = '256'
 default[:ebs][:md_read_ahead] = '65536' # 64k
+default[:ebs][:block_range_regex] = '/dev/xvd[f-p]'
 
 if BlockDevice.on_kvm?
   Chef::Log.info("Running on QEMU/KVM: Need to translate device names as KVM allocates them regardless of the given device ID")
